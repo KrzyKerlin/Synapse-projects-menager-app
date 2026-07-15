@@ -1,6 +1,6 @@
 const db = require("../db");
 const { randomUUID } = require("crypto");
-const { hashPassword } = require("../utils/password");
+const { hashPassword, verifyPassword } = require("../utils/password");
 const { signToken } = require("../utils/jwt");
 
 function register(req, res) {
@@ -37,4 +37,23 @@ function register(req, res) {
   res.status(201).json({ token, user: { id: user.id, username: user.username } });
 }
 
-module.exports = { register };
+function login(req, res) {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ error: "Podaj nazwę użytkownika i hasło." });
+  }
+
+  const user = db
+    .prepare("SELECT * FROM users WHERE username = ?")
+    .get(username.trim());
+
+  if (!user || !verifyPassword(password, user.password_hash)) {
+    return res.status(401).json({ error: "Nieprawidłowa nazwa użytkownika lub hasło." });
+  }
+
+  const token = signToken(user);
+  res.json({ token, user: { id: user.id, username: user.username } });
+}
+
+module.exports = { register, login };
