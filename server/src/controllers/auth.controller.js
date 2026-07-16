@@ -56,4 +56,16 @@ function login(req, res) {
   res.json({ token, user: { id: user.id, username: user.username } });
 }
 
-module.exports = { register, login };
+function me(req, res) {
+  const user = db
+    .prepare("SELECT id, username, created_at FROM users WHERE id = ?")
+    .get(req.user.id);
+
+  if (!user) {
+    return res.status(404).json({ error: "Użytkownik nie istnieje." });
+  }
+
+  res.json({ user });
+}
+
+module.exports = { register, login, me };
