@@ -4,6 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const initSchema = require("./schema");
 const authRoutes = require("./routes/auth.routes");
+const projectsRoutes = require("./routes/projects.routes");
 
 initSchema();
 
@@ -17,6 +18,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/projects", projectsRoutes);
 
 const PORT = process.env.PORT || 4000;
 
