@@ -6,6 +6,7 @@ const initSchema = require("./schema");
 const authRoutes = require("./routes/auth.routes");
 const projectsRoutes = require("./routes/projects.routes");
 const foldersRoutes = require("./routes/folders.routes");
+const tasksRoutes = require("./routes/tasks.routes");
 
 initSchema();
 
@@ -21,6 +22,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectsRoutes);
 app.use("/api/folders", foldersRoutes);
+app.use("/api/tasks", tasksRoutes);
 
 const PORT = process.env.PORT || 4000;
 
