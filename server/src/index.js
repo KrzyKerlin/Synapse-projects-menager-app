@@ -7,6 +7,7 @@ const authRoutes = require("./routes/auth.routes");
 const projectsRoutes = require("./routes/projects.routes");
 const foldersRoutes = require("./routes/folders.routes");
 const tasksRoutes = require("./routes/tasks.routes");
+const commitsRoutes = require("./routes/commits.routes");
 
 initSchema();
 
@@ -23,6 +24,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectsRoutes);
 app.use("/api/folders", foldersRoutes);
 app.use("/api/tasks", tasksRoutes);
+app.use("/api/commits", commitsRoutes);
 
 const PORT = process.env.PORT || 4000;
 
