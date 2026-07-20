@@ -9,22 +9,18 @@ function listTasks(req, res) {
   res.json(rows.map(serializeTask));
 }
 
-function createTask(req, res) {
-  const body = req.body;
-
-  if (!body.title || !body.title.trim()) {
-    return res.status(400).json({ error: "Tytuł zadania jest wymagany." });
-  }
-
+// Shared by the POST /api/tasks route and the chat "dodaj zadanie" command,
+// so both go through the same insert logic.
+function insertTask(userId, fields) {
   const task = {
     id: randomUUID(),
-    user_id: req.user.id,
-    project_id: body.projectId || null,
-    title: body.title.trim(),
-    type: body.type || "feat",
-    priority: body.priority || "medium",
-    description: body.desc || "",
-    due: body.due || null,
+    user_id: userId,
+    project_id: fields.projectId || null,
+    title: fields.title.trim(),
+    type: fields.type || "feat",
+    priority: fields.priority || "medium",
+    description: fields.desc || "",
+    due: fields.due || null,
     done: 0,
     created_at: new Date().toISOString(),
     updated_at: null,
@@ -38,7 +34,17 @@ function createTask(req, res) {
       (@id, @user_id, @project_id, @title, @type, @priority, @description, @due, @done, @created_at, @updated_at, @done_at)`,
   ).run(task);
 
-  res.status(201).json(serializeTask(task));
+  return serializeTask(task);
+}
+
+function createTask(req, res) {
+  const body = req.body;
+
+  if (!body.title || !body.title.trim()) {
+    return res.status(400).json({ error: "Tytuł zadania jest wymagany." });
+  }
+
+  res.status(201).json(insertTask(req.user.id, body));
 }
 
 function updateTask(req, res) {
@@ -94,4 +100,4 @@ function deleteTask(req, res) {
   res.status(204).end();
 }
 
-module.exports = { listTasks, createTask, updateTask, deleteTask };
+module.exports = { listTasks, createTask, updateTask, deleteTask, insertTask };
