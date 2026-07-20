@@ -37,12 +37,21 @@ function findMentionedProjects(message, projects) {
   return projects.filter((p) => q.includes(p.name.toLowerCase()));
 }
 
+// Builds an ISO date string from local date components — toISOString()
+// converts to UTC first, which can silently shift the date across timezones.
+function isoDateInDays(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 // Nearest date (today or later) that falls on the given day of week.
 function nextWeekdayDate(targetDow) {
-  const d = new Date();
-  const diff = (targetDow - d.getDay() + 7) % 7;
-  d.setDate(d.getDate() + diff);
-  return d.toISOString().slice(0, 10);
+  const diff = (targetDow - new Date().getDay() + 7) % 7;
+  return isoDateInDays(diff);
 }
 
 function answerQuery(message, data, matchProject) {
@@ -262,7 +271,7 @@ function answerQuery(message, data, matchProject) {
   }
 
   if (q.includes("jutro")) {
-    const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+    const tomorrow = isoDateInDays(1);
     const dueTomorrow = scopeTasks.filter((t) => !t.done && t.due === tomorrow);
     if (!dueTomorrow.length) return matchProj ? `Brak zadań na jutro w "${matchProj.name}".` : "Nie masz żadnych terminów jutro.";
     return `Zadania na jutro${matchProj ? ` w "${matchProj.name}"` : ""}:\n` +
@@ -270,7 +279,7 @@ function answerQuery(message, data, matchProject) {
   }
 
   if (q.includes("wczoraj")) {
-    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    const yesterday = isoDateInDays(-1);
     const dueYesterday = scopeTasks.filter((t) => t.due === yesterday);
     if (!dueYesterday.length) return matchProj ? `Brak zadań z terminem wczoraj w "${matchProj.name}".` : "Nie miałeś żadnych zadań z terminem wczoraj.";
     return `Zadania z terminem wczoraj${matchProj ? ` w "${matchProj.name}"` : ""}:\n` +
@@ -296,7 +305,7 @@ function answerQuery(message, data, matchProject) {
   }
 
   if (q.includes("dzisiaj") || q.includes("dziś")) {
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayStr = isoDateInDays(0);
     const dueToday = scopeTasks.filter((t) => !t.done && t.due === todayStr);
     if (!dueToday.length) return "Nie masz dziś żadnych terminów zadań.";
     return "Zadania na dziś:\n" + dueToday.map((t) => `• [${t.type.toUpperCase()}] ${t.title}`).join("\n");
@@ -448,4 +457,73 @@ function answerQuery(message, data, matchProject) {
   return 'Nie jestem pewien, o co pytasz. Spróbuj np. "jakie mam zadania?", "pokaż kolory w [projekt]" albo "dodaj zadanie: ...".';
 }
 
-module.exports = { answerQuery, findMentionedProject };
+// ===== "dodaj zadanie: ..." command parsing =====
+
+const PRIORITY_WORDS = {
+  niski: "low",
+  niska: "low",
+  niskie: "low",
+  średni: "medium",
+  średnia: "medium",
+  średnie: "medium",
+  wysoki: "high",
+  wysoka: "high",
+  wysokie: "high",
+  pilne: "high",
+};
+
+const TASK_TYPES = ["fix", "feat", "js", "style", "refactor", "test", "docs", "perf", "chore"];
+
+function parseDue(word) {
+  const w = word.toLowerCase();
+  if (w === "dzisiaj" || w === "dziś") return isoDateInDays(0);
+  if (w === "jutro") return isoDateInDays(1);
+  if (w === "pojutrze") return isoDateInDays(2);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(w)) return w;
+  const inDays = w.match(/^za\s+(\d+)\s+dni$/);
+  if (inDays) return isoDateInDays(Number(inDays[1]));
+  return null;
+}
+
+// Parses a natural-language command like:
+// "dodaj zadanie: popraw stopkę priorytet wysoki termin jutro typ fix projekt Portfolio"
+// Returns null when the message isn't a task-creation command.
+function parseTaskCommand(message, projects) {
+  const prefixMatch = message.match(/^\s*dodaj\s+zadanie\s*:?\s*/i);
+  if (!prefixMatch) return null;
+
+  const rest = message.slice(prefixMatch[0].length);
+  const keywordPattern = /\b(priorytet|termin|typ|projekt)\b/i;
+  const firstKeyword = rest.search(keywordPattern);
+  const title = (firstKeyword === -1 ? rest : rest.slice(0, firstKeyword))
+    .trim()
+    .replace(/[,.;:]+$/, "");
+
+  if (!title) return null;
+
+  const priorityMatch = rest.match(/priorytet\s+(\S+)/i);
+  const typeMatch = rest.match(/typ\s+(\S+)/i);
+  const dueMatch = rest.match(/termin\s+(za\s+\d+\s+dni|\S+)/i);
+  const projectMatch = rest.match(/projekt\s+([^,]+?)(?=\s+(priorytet|termin|typ|projekt)\b|$)/i);
+
+  const priority = priorityMatch
+    ? PRIORITY_WORDS[priorityMatch[1].toLowerCase()] || "medium"
+    : "medium";
+  const type = typeMatch && TASK_TYPES.includes(typeMatch[1].toLowerCase())
+    ? typeMatch[1].toLowerCase()
+    : "feat";
+  const due = dueMatch ? parseDue(dueMatch[1]) : null;
+  const project = projectMatch
+    ? projects.find((p) => p.name.toLowerCase().includes(projectMatch[1].trim().toLowerCase()))
+    : null;
+
+  return {
+    title,
+    priority,
+    type,
+    due,
+    projectId: project ? project.id : null,
+  };
+}
+
+module.exports = { answerQuery, findMentionedProject, parseTaskCommand };
