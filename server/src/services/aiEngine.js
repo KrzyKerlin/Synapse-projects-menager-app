@@ -526,4 +526,20 @@ function parseTaskCommand(message, projects) {
   };
 }
 
-module.exports = { answerQuery, findMentionedProject, parseTaskCommand };
+// Looks back through recent chat messages (newest first) for the last
+// project name that was mentioned, so follow-up questions like
+// "a jakie ma terminy?" don't need to repeat the project name.
+function inferContextProject(recentMessages, projects) {
+  for (const msg of recentMessages) {
+    const found = findMentionedProject(msg.text, projects);
+    if (found) return found;
+  }
+  return null;
+}
+
+module.exports = {
+  answerQuery,
+  findMentionedProject,
+  parseTaskCommand,
+  inferContextProject,
+};
