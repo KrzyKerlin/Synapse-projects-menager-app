@@ -9,6 +9,7 @@ const foldersRoutes = require("./routes/folders.routes");
 const tasksRoutes = require("./routes/tasks.routes");
 const commitsRoutes = require("./routes/commits.routes");
 const chatRoutes = require("./routes/chat.routes");
+const { notFound, errorHandler } = require("./middleware/errorHandler");
 
 initSchema();
 
@@ -27,6 +28,9 @@ app.use("/api/folders", foldersRoutes);
 app.use("/api/tasks", tasksRoutes);
 app.use("/api/commits", commitsRoutes);
 app.use("/api/chat", chatRoutes);
+
+app.use(notFound);
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 4000;
 
