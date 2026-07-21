@@ -2,8 +2,7 @@ node_modules/
 dist/
 .env
 .env.local
-server/data/*.sqlite
-server/data/*.sqlite-journal
+server/data/*.sqlite*
 *.log
 .DS_Store
 TODO.md
