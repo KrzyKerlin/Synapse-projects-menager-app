@@ -1,7 +1,7 @@
-<script setup>
-import HelloWorld from './components/HelloWorld.vue'
-</script>
+<script setup></script>
 
 <template>
-  <HelloWorld />
+  <div style="padding: 40px; color: var(--text)">
+    <p style="color: var(--text-muted)">Frontend w budowie</p>
+  </div>
 </template>
