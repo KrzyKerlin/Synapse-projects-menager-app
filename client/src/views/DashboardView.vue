@@ -1,8 +1,30 @@
 <script setup>
+import { onMounted } from "vue";
 import { useToastStore } from "../stores/toast";
+import { useProjectsStore } from "../stores/projects";
+import { useFoldersStore } from "../stores/folders";
+import { useTasksStore } from "../stores/tasks";
+import { useCommitsStore } from "../stores/commits";
 import TheTaskbar from "../components/layout/TheTaskbar.vue";
 
 const toast = useToastStore();
+const projectsStore = useProjectsStore();
+const foldersStore = useFoldersStore();
+const tasksStore = useTasksStore();
+const commitsStore = useCommitsStore();
+
+onMounted(async () => {
+  try {
+    await Promise.all([
+      projectsStore.fetchAll(),
+      foldersStore.fetchAll(),
+      tasksStore.fetchAll(),
+      commitsStore.fetchAll(),
+    ]);
+  } catch (err) {
+    toast.show(err.message, "error");
+  }
+});
 
 function notImplementedYet() {
   toast.show("Ta funkcja pojawi się w kolejnym commicie.", "info");
