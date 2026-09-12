@@ -2,6 +2,7 @@
 import { ref, computed } from "vue";
 import { useTasksStore } from "../../stores/tasks";
 import { useProjectsStore } from "../../stores/projects";
+import BaseModal from "../modals/BaseModal.vue";
 
 defineProps({
   show: { type: Boolean, required: true },
@@ -102,7 +103,7 @@ function projectName(task) {
 </script>
 
 <template>
-  <div v-if="show" class="floating-widget calendar-widget" style="right: 10px; width: 290px">
+  <BaseModal :show="show" title="Kalendarz" max-width="360px" @close="emit('close')">
     <div class="cal-header">
       <button class="cal-nav" @click="prevMonth">‹</button>
       <h4>{{ monthLabel }}</h4>
@@ -134,30 +135,28 @@ function projectName(task) {
       </div>
     </div>
     <div v-else class="cal-legend">Kliknij dzień, by zobaczyć listę zadań</div>
-  </div>
+  </BaseModal>
 </template>
 
 <style scoped>
-.calendar-widget {
-  bottom: calc(var(--taskbar-h) + 10px);
-}
 .cal-header {
   display: flex;
   align-items: center;
-  padding: 12px 14px;
   gap: 8px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--border);
-  background: var(--bg-card2);
-  border-radius: 16px 16px 0 0;
+  margin-bottom: 10px;
 }
 .cal-header h4 {
   flex: 1;
+  text-align: center;
   font-size: 0.82rem;
   font-weight: 700;
 }
 .cal-nav {
   width: 26px;
   height: 26px;
+  flex-shrink: 0;
   border-radius: 6px;
   background: var(--bg-hover);
   border: 1px solid var(--border);
@@ -168,7 +167,6 @@ function projectName(task) {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 2px;
-  padding: 10px;
 }
 .cal-day-name {
   text-align: center;
@@ -256,8 +254,9 @@ function projectName(task) {
   white-space: nowrap;
 }
 .cal-legend {
-  padding: 0 14px 12px;
+  padding-top: 10px;
   font-size: 0.65rem;
   color: var(--text-muted);
+  text-align: center;
 }
 </style>

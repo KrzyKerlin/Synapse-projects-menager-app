@@ -4,6 +4,7 @@ import { useChatStore } from "../../stores/chat";
 import { useProjectsStore } from "../../stores/projects";
 import { useToastStore } from "../../stores/toast";
 import { Bot, X, Send, RotateCcw } from "@lucide/vue";
+import { useWindowFocus } from "../../composables/useWindowFocus";
 
 const chatStore = useChatStore();
 const projectsStore = useProjectsStore();
@@ -11,6 +12,7 @@ const toast = useToastStore();
 
 const input = ref("");
 const messagesEl = ref(null);
+const { zIndex, bringToFront } = useWindowFocus();
 
 const GLOBAL_SUGGESTIONS = [
   "jakie mam zadania?",
@@ -35,7 +37,10 @@ const suggestions = computed(() => (contextProject.value ? SCOPED_SUGGESTIONS : 
 watch(
   () => chatStore.isOpen,
   (isOpen) => {
-    if (isOpen) chatStore.loadHistory();
+    if (isOpen) {
+      chatStore.loadHistory();
+      bringToFront();
+    }
   },
 );
 
@@ -74,7 +79,12 @@ async function resetChat() {
 </script>
 
 <template>
-  <div v-if="chatStore.isOpen" class="floating-widget chat-widget" style="right: 10px; width: 340px">
+  <div
+    v-if="chatStore.isOpen"
+    class="floating-widget chat-widget"
+    :style="{ right: '10px', width: '340px', zIndex }"
+    @mousedown="bringToFront"
+  >
     <div class="chat-header">
       <div class="chat-avatar"><Bot :size="18" /></div>
       <div style="flex: 1">
