@@ -286,9 +286,9 @@ input[type="date"].form-input::-webkit-calendar-picker-indicator:hover {
   min-width: 0;
 }
 .task-title {
-  font-size: 0.82rem;
+  font-size: 0.88rem;
   font-weight: 500;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 .task-meta {
   display: flex;
@@ -341,16 +341,28 @@ input[type="date"].form-input::-webkit-calendar-picker-indicator:hover {
 .project-panel {
   display: flex;
   height: 100%;
+  overflow: hidden;
+  /* Cancels .modal-body's own right padding so the scrollbar below can sit
+     flush against the window's true edge instead of floating inset. */
+  margin-right: -20px;
 }
 .panel-sidebar {
   width: 190px;
   flex-shrink: 0;
   border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 .panel-main {
   flex: 1;
   min-width: 0;
+  height: 100%;
   padding-left: 20px;
+  /* Restores the visual gutter that margin-right above removed, so content
+     doesn't butt up against the scrollbar. */
+  padding-right: 20px;
+  overflow-y: auto;
 }
 .panel-nav-item {
   display: flex;
@@ -417,12 +429,16 @@ input[type="date"].form-input::-webkit-calendar-picker-indicator:hover {
 @media (max-width: 768px) {
   .project-panel {
     flex-direction: column;
+    overflow: visible;
+    margin-right: 0;
   }
   .panel-sidebar {
     width: 100%;
     border-right: none;
     border-bottom: 1px solid var(--border);
     display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
     overflow-x: auto;
   }
   .panel-nav-item {
@@ -440,8 +456,11 @@ input[type="date"].form-input::-webkit-calendar-picker-indicator:hover {
     border-left-color: transparent;
   }
   .panel-main {
+    height: auto;
     padding-left: 0;
+    padding-right: 0;
     padding-top: 16px;
+    overflow-y: visible;
   }
 }
 
