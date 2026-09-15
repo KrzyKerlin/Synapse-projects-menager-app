@@ -347,7 +347,7 @@ input[type="date"].form-input::-webkit-calendar-picker-indicator:hover {
   margin-right: -20px;
 }
 .panel-sidebar {
-  width: 190px;
+  width: 150px;
   flex-shrink: 0;
   border-right: 1px solid var(--border);
   display: flex;

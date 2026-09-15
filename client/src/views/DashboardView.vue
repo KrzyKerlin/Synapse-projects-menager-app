@@ -12,6 +12,7 @@ import NewFolderModal from "../components/modals/NewFolderModal.vue";
 import NewTaskModal from "../components/modals/NewTaskModal.vue";
 import AllTasksModal from "../components/modals/AllTasksModal.vue";
 import NewProjectModal from "../components/modals/NewProjectModal.vue";
+import FolderDetailModal from "../components/modals/FolderDetailModal.vue";
 import ProjectDetailModal from "../components/project/ProjectDetailModal.vue";
 import CalendarWidget from "../components/widgets/CalendarWidget.vue";
 import EditTaskModal from "../components/modals/EditTaskModal.vue";
@@ -50,15 +51,24 @@ const showNewTaskModal = ref(false);
 const showAllTasksModal = ref(false);
 const showNewProjectModal = ref(false);
 const openProjectId = ref(null);
+const openFolderId = ref(null);
+
+// Projects filed into a folder only show inside that folder's window, not
+// as a duplicate card on the desktop.
+const unfiledProjects = computed(() => projectsStore.items.filter((p) => !p.folderId));
+const openFolderData = computed(() => foldersStore.items.find((f) => f.id === openFolderId.value) || null);
 
 function openProject(id) {
   openProjectId.value = id;
 }
 
+function openProjectFromFolder(id) {
+  openFolderId.value = null;
+  openProjectId.value = id;
+}
+
 function openFolder(id) {
-  const folder = foldersStore.items.find((f) => f.id === id);
-  const count = projectsStore.items.filter((p) => p.folderId === id).length;
-  toast.show(`Katalog: ${folder.name} (${count} projektów)`, "info");
+  openFolderId.value = id;
 }
 
 const showCalendar = ref(false);
@@ -146,7 +156,7 @@ function onFolderContextMenu(event, id) {
         @move="moveFolder"
       />
       <ProjectCard
-        v-for="project in projectsStore.items"
+        v-for="project in unfiledProjects"
         :key="project.id"
         :project="project"
         :style="{ left: project.x + 'px', top: project.y + 'px' }"
@@ -186,6 +196,12 @@ function onFolderContextMenu(event, id) {
     <AllTasksModal :show="showAllTasksModal" @close="showAllTasksModal = false" />
     <NewProjectModal :show="showNewProjectModal" @close="showNewProjectModal = false" />
     <ProjectDetailModal :show="!!openProjectId" :project-id="openProjectId" @close="openProjectId = null" />
+    <FolderDetailModal
+      :show="!!openFolderId"
+      :folder="openFolderData"
+      @close="openFolderId = null"
+      @open-project="openProjectFromFolder"
+    />
     <CalendarWidget :show="showCalendar" @close="showCalendar = false" @edit-task="editingTask = $event" />
     <EditTaskModal :show="!!editingTask" :task="editingTask" @close="editingTask = null" />
     <ChatWidget />
